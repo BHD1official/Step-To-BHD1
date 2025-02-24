@@ -24,7 +24,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createWebHistory(process.env.BASE_URL), // Will be set by Vue automatically
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (to.hash) {
@@ -35,6 +35,5 @@ const router = createRouter({
     }
   }
 });
-
 
 export default router;
