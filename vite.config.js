@@ -3,8 +3,8 @@ import vue from '@vitejs/plugin-vue';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  base: '/<Step-To-BHD1>/',
   publicPath: process.env.NODE_ENV === 'production' ? '/Step-To-BHD1/' : '/',
-  base: process.env.NODE_ENV === 'production' ? '/Step-To-BHD1/' : '/',
   plugins: [vue(), VitePWA({ registerType: 'autoUpdate' })],
 });
 
