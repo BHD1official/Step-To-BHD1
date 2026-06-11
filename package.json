@@ -19,7 +19,7 @@
     "@ionic/vue-router": "^7.0.0-rc.1",
     "add": "^2.0.6",
     "animate.css": "^4.1.1",
-    "cordova": "^11.1.0",
+    "cordova": "^13.0.0",
     "cordova-plugin-ionic-keyboard": "^2.2.0",
     "core-js": "^3.6.5",
     "gsap": "^3.11.3",
