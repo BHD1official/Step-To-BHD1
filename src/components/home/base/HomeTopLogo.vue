@@ -77,7 +77,8 @@ export default defineComponent({
       arrowSrc: require("@/assets/media1/HomePage/arrow-back.png"),
       text: "",
       showHeading: false,
-      textArray: ["הגדרות", "מקראות", "כרטיסיות", 'על הבה"ד'],
+      // הסדר המעודכן לפי הבקשה שלך: הגדרות, מקראות, מבחן, כרטיסיות, על הבה"ד
+      textArray: ["הגדרות", "מקראות", "מבחן", "כרטיסיות", "על הבה\"ד"],
       icon: null,
     };
   },

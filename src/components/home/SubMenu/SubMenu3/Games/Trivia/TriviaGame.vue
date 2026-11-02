@@ -14,7 +14,7 @@
         :noCorrect="noCorrect"
         :noWrong="noWrong"
         @endGame="endGame"
-        :class="[stage == 'end' && type != 5 ? 'transparent' : '']"
+        :class="[stage == 'end' && type != 3 ? 'transparent' : '']"
       ></trivia-info>
 
       <trivia-questions
@@ -50,7 +50,7 @@ import CountDown from "./CountDown.vue";
 import TriviaInfo from "./TriviaInfo.vue";
 import TriviaQuestions from "./TriviaQuestions.vue";
 import EndGame from "./EndGame.vue";
-import {mapActions } from "vuex";
+import { mapActions } from "vuex";
 
 export default {
   name: "TriviaGame",
@@ -75,6 +75,13 @@ export default {
 
     changeCorrect(n) {
       this.noCorrect += n;
+      
+      const totalQuestions = this.$refs.child && this.$refs.child.nofQuestions ? this.$refs.child.nofQuestions : 10;
+      if (this.noCorrect >= totalQuestions && this.type == 3) {
+        setTimeout(() => {
+          this.stage = "end";
+        }, 500);
+      }
     },
 
     changeWrong(n) {
@@ -82,14 +89,14 @@ export default {
     },
 
     tryAgain() {
-      if (this.type == 5) this.resetPicked();
+      if (this.type == 3) this.resetPicked();
       this.stage = "game";
       this.noCorrect = 0;
       this.noWrong = 0;
     },
 
     showReview() {
-      this.updatequestNum(0)
+      this.updatequestNum(0);
       this.stage = "review";
     },
   },
@@ -102,7 +109,7 @@ export default {
   display: flex;
   align-items: space-between;
   flex-direction: column;
-  padding: 1% 4% ;
+  padding: 1% 4%;
 }
 
 .box {
@@ -110,20 +117,8 @@ export default {
   width: 100%;
 }
 
-.trivia-icon {
-  display: inline-block;
-  width: 10%;
-  height: 10%;
-}
-
 .transparent {
   opacity: 0;
   transition: all 0.5s ease;
-}
-
-@media only screen and (max-height: 800px) {
-  .trivia {
-    padding: 4%, 1%;
-  }
 }
 </style>

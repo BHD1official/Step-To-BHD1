@@ -39,7 +39,7 @@ export default {
       swiperClicked: false,
       perView: 3,
       spaceBet: 5,
-      slideNum: 4,
+      slideNum: 5,
       activeIndex: null,
       opacity: true,
     };

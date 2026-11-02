@@ -32,7 +32,7 @@
       </div>
     </div>
 
-    <ion-button shape="round" size="large" :key="0" v-if="type == 5" @click="$emit('showReview')"
+    <ion-button shape="round" size="large" :key="0" v-if="type == 3" @click="$emit('showReview')"
       >איפה טעיתי ?  
     </ion-button>
     <ion-button shape="round" size="large" @click="$emit('tryAgain')" :key="0"

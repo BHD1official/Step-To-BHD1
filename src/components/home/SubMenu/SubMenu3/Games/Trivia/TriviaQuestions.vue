@@ -32,7 +32,7 @@
       <ion-button
         shape="round"
         size="large"
-        v-if="type == 5"
+        v-if="type == 3"
         :class="[allAnswered || stage == 'review' ? '' : 'transparent']"
         @click="reset"
         :key="0"
@@ -45,7 +45,6 @@
 <script>
 import { IonText, IonButton } from "@ionic/vue";
 import allQuestions from "@/json/games/trivia.json";
-import test from "@/json/games/tests.json";
 import { mapState, mapActions } from "vuex";
 
 export default {
@@ -68,8 +67,7 @@ export default {
   },
 
   async beforeMount() {
-    // copy all relavent questions
-    if (this.type != 5) {
+    if (this.type != 3) {
       // trivia
       allQuestions.forEach((chap, i) => {
         chap.forEach((ques) => {
@@ -79,19 +77,33 @@ export default {
           }
         });
       });
+      this.nofQuestions = this.questions.length;
+      this.updatequestNum(this.getNext());
     } else {
-      // test
-      let correct = [];
-      test[this.exam].forEach((ques) => {
-        let shuffledQues = this.mixAns({ ...ques });
-        this.questions.push(shuffledQues);
-        correct.push(shuffledQues.correct);
+      // test (type == 3) - שאיבת שאלות מתוך הפרקים הנבחרים בלבד
+      let pool = [];
+      allQuestions.forEach((chap, i) => {
+        chap.forEach((ques) => {
+          if (this.chosenChapters.includes(i)) {
+            pool.push(this.mixAns({ ...ques }));
+          }
+        });
       });
-      this.updateCorrectAns(correct); // send to store correct answers - for triviaInfo
-    }
 
-    this.nofQuestions = this.questions.length;
-    this.updatequestNum(this.getNext());
+      // ערבוב המאגר ולקיחת עד 10 שאלות למבחן הנוכחי
+      pool.sort(() => Math.random() - 0.5);
+      this.questions = pool.slice(0, 10);
+
+      let correct = [];
+      this.questions.forEach((ques) => {
+        correct.push(ques.correct);
+      });
+      this.updateCorrectAns(correct);
+
+      this.nofQuestions = this.questions.length;
+      // תיקון קריטי: במבחן תמיד מביאים את המשתמש לשאלה ראשונה (אינדקס 0)
+      this.updatequestNum(0);
+    }
   },
 
   methods: {
@@ -103,12 +115,9 @@ export default {
       "resetPicked",
     ]),
 
-    // recives a question object and returns the question with shuffled answers
     mixAns(ques) {
       let min = 1,
         max = 4;
-
-      // i j k - indexes of answers to mix
       let i = Math.round(Math.random() * (max - min) + min);
       let j, k;
 
@@ -119,7 +128,6 @@ export default {
       while (k == j || k == i);
 
       let tmp = ques[i];
-
       ques[i] = ques[j];
       ques[j] = ques[k];
       ques[k] = tmp;
@@ -138,7 +146,6 @@ export default {
           ? "picked"
           : "unpicked";
 
-      //review
       let picked = this.testAnswers[this._questNum].picked;
       let correct = this.testAnswers[this._questNum].correct;
 
@@ -149,8 +156,7 @@ export default {
     },
 
     getNext() {
-      if (this.type != 5) {
-        // trivia - randome questions
+      if (this.type != 3) {
         let next;
         do {
           next = Math.floor(Math.random() * (this.nofQuestions - 0));
@@ -158,7 +164,6 @@ export default {
         return next;
       }
 
-      // test - questions by order
       return this._questNum != this.testAnswers.length - 1
         ? this._questNum + 1
         : this._questNum;
@@ -167,37 +172,46 @@ export default {
     reset() {
       this.answered = false;
 
-      if (this.type != 5) {
+      if (this.type != 3) {
         this.questions.forEach((ques) => {
-          ques.answered = false; // restart - all questions were not answered
-          ques = this.mixAns({ ...ques }); // shuffle the answers
+          ques.answered = false;
+          ques = this.mixAns({ ...ques });
         });
         this.updatequestNum(this.getNext());
       } else {
+        let pool = [];
+        allQuestions.forEach((chap, i) => {
+          chap.forEach((ques) => {
+            if (this.chosenChapters.includes(i)) {
+              pool.push(this.mixAns({ ...ques }));
+            }
+          });
+        });
+        pool.sort(() => Math.random() - 0.5);
+        this.questions = pool.slice(0, 10);
+
         let correct = [];
-        this.questions.forEach((ques, i) => {
-          let shuffledQues = this.mixAns({ ...ques });
-          this.questions[i] = shuffledQues; // shuffle the answers
-          correct.push(shuffledQues.correct);
+        this.questions.forEach((ques) => {
+          correct.push(ques.correct);
         });
 
         this.updateCorrectAns(correct);
-        this.updatequestNum(0); // first
+        this.updatequestNum(0);
       }
 
       this.allAnswered = false;
       this.numOfAnswered = 0;
-      this.$emit("EndGame"); // hearts game and gime ended
+      this.$emit("EndGame");
     },
 
     ansPicked(hisAnswer) {
-      this.type != 5
+      this.type != 3
         ? this.ansPickedGame(hisAnswer)
         : this.ansPickedTest(hisAnswer);
     },
 
     ansPickedGame(hisAnswer) {
-      let correct = this.questions[this._questNum].correct; // num of correct ans
+      let correct = this.questions[this._questNum].correct;
       let timeout = 1500;
       this.answered = true;
 
@@ -215,7 +229,7 @@ export default {
 
       setTimeout(() => {
         if (
-          (this.type == 3 && this.noWrong == 3) ||
+          (this.type == 4 && this.noWrong == 3) ||
           this.noCorrect == this.nofQuestions
         ) {
           this.reset();
@@ -223,10 +237,8 @@ export default {
         }
 
         this.updatequestNum(this.getNext());
-
         this.answered = false;
 
-        // reset colors for the next question
         this.$refs["ans" + hisAnswer][0].style.backgroundColor =
           "var(--ion-color-tertiary)";
         this.$refs["ans" + correct][0].style.backgroundColor =
@@ -235,12 +247,12 @@ export default {
     },
 
     ansPickedTest(hisAnswer) {
-      let correct = this.questions[this._questNum].correct; // num of correct ans
       let picked = this.testAnswers[this._questNum].picked;
+      let correct = this.questions[this._questNum].correct;
       let timeout = 700;
       this.answered = true;
 
-      if (picked == -1) this.numOfAnswered++; // first time answered
+      if (picked == -1) this.numOfAnswered++;
 
       this.updatePickedAns({
         _questNum: this._questNum,
@@ -259,7 +271,6 @@ export default {
 
       setTimeout(() => {
         if (picked == -1) this.updatequestNum(this.getNext());
-
         this.answered = false;
       }, timeout);
     },
@@ -298,7 +309,6 @@ export default {
   margin-top: 5%;
   height: 0.3rem;
   border-radius: 2dvh;
-  height: 0.4rem;
 }
 
 .answers {
@@ -327,13 +337,7 @@ export default {
   border-radius: 3dvh;
   transition: all 0.5s ease;
   font-size: 2.5dvh;
-  transition: all 1s ease;
   margin: 2% 0;
-}
-
-.endTxt {
-  font-weight: 700;
-  font-size: 100%;
 }
 
 .ques-part {
@@ -360,24 +364,5 @@ export default {
 }
 .wrong {
   background-color: var(--ion-color-danger);
-}
-
-@media only screen and (max-height: 800px) {
-  .answers {
-    margin: 2%;
-  }
-
-  .ans {
-    padding: 2%;
-    border-radius: 3dvh;
-    transition: all 0.5s ease;
-    margin: 1.5% 0;
-  }
-
-  .ques-card {
-    height: 7rem;
-    padding: 0% 2%;
-    font-size: 85%;
-  }
 }
 </style>
